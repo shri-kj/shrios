@@ -44,13 +44,20 @@
 #include "berry_powder.h"
 #include "mystery_gift.h"
 #include "union_room_chat.h"
+#include "wild_encounter.h"
+#include "string_util.h"
 #include "constants/items.h"
+#include "constants/opponents.h"
+#include "constants/flags.h"
+#include "constants/heal_locations.h"
 
 extern const u8 EventScript_ResetAllMapFlags[];
 
 static void ClearFrontierRecord(void);
-static void WarpToTruck(void);
+static void WarpToStartingRoom(void);
 static void ResetMiniGamesRecords(void);
+static void SetDefaultPlayerIdentity(void);
+static void MarkAllTrainersDefeated(void);
 
 EWRAM_DATA bool8 gDifferentSaveFile = FALSE;
 EWRAM_DATA bool8 gEnableContestDebugging = FALSE;
@@ -124,10 +131,28 @@ static void ClearFrontierRecord(void)
     gSaveBlock2Ptr->frontier.opponentNames[1][0] = EOS;
 }
 
-static void WarpToTruck(void)
+static void WarpToStartingRoom(void)
 {
-    SetWarpDestination(MAP_GROUP(MAP_INSIDE_OF_TRUCK), MAP_NUM(MAP_INSIDE_OF_TRUCK), WARP_ID_NONE, -1, -1);
+    SetLastHealLocationWarp(HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F);
+    SetWarpDestinationToHealLocation(HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F);
     WarpIntoMap();
+}
+
+static void SetDefaultPlayerIdentity(void)
+{
+    static const u8 sDefaultPlayerName[] = _("SHRI");
+
+    gSaveBlock2Ptr->playerGender = MALE;
+    StringCopy(gSaveBlock2Ptr->playerName, sDefaultPlayerName);
+    gSaveBlock2Ptr->playerName[PLAYER_NAME_LENGTH] = EOS;
+}
+
+static void MarkAllTrainersDefeated(void)
+{
+    s32 trainerId;
+
+    for (trainerId = 0; trainerId < MAX_TRAINERS_COUNT; trainerId++)
+        FlagSet(TRAINER_FLAGS_START + trainerId);
 }
 
 void Sav2_ClearSetDefault(void)
@@ -162,9 +187,11 @@ void NewGameInitData(void)
     gSaveBlock2Ptr->specialSaveWarpFlags = 0;
     gSaveBlock2Ptr->gcnLinkFlags = 0;
     InitPlayerTrainerId();
+    SetDefaultPlayerIdentity();
     PlayTimeCounter_Reset();
     ClearPokedexFlags();
     InitEventData();
+    MarkAllTrainersDefeated();
     ClearTVShowData();
     ResetGabbyAndTy();
     ClearSecretBases();
@@ -192,7 +219,7 @@ void NewGameInitData(void)
     InitDewfordTrend();
     ResetFanClub();
     ResetLotteryCorner();
-    WarpToTruck();
+    WarpToStartingRoom();
     RunScriptImmediately(EventScript_ResetAllMapFlags);
     ResetMiniGamesRecords();
     InitUnionRoomChatRegisteredTexts();
@@ -204,6 +231,31 @@ void NewGameInitData(void)
     WipeTrainerNameRecords();
     ResetTrainerHillResults();
     ResetContestLinkResults();
+    DisableWildEncounters(TRUE);
+    FlagSet(FLAG_SYS_POKEDEX_GET);
+    FlagSet(FLAG_SYS_POKEMON_GET);
+    FlagSet(FLAG_SYS_POKENAV_GET);
+    FlagSet(FLAG_ADVENTURE_STARTED);
+    VarSet(VAR_BIRCH_LAB_STATE, 5);
+    VarSet(VAR_ROUTE101_STATE, 3);
+    FlagSet(FLAG_HIDE_ROUTE_101_BIRCH_ZIGZAGOON_BATTLE);
+    FlagSet(FLAG_HIDE_ROUTE_101_BIRCH_STARTERS_BAG);
+    FlagSet(FLAG_HIDE_ROUTE_101_BIRCH);
+    FlagSet(FLAG_HIDE_ROUTE_101_ZIGZAGOON);
+    VarSet(VAR_LITTLEROOT_TOWN_STATE, 4);
+    VarSet(VAR_LITTLEROOT_INTRO_STATE, 7);
+    VarSet(VAR_LITTLEROOT_HOUSES_STATE_BRENDAN, 5);
+    VarSet(VAR_LITTLEROOT_HOUSES_STATE_MAY, 5);
+    VarSet(VAR_LITTLEROOT_RIVAL_STATE, 4);
+    FlagSet(FLAG_RESCUED_BIRCH);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_TRUCK);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_TRUCK);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_MOM_OUTSIDE);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_PLAYERS_BEDROOM_MOM);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_MOM);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_MOM);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_RIVAL_MOM);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_RIVAL_MOM);
 }
 
 static void ResetMiniGamesRecords(void)

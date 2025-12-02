@@ -2212,6 +2212,9 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
 
     ZeroBoxMonData(boxMon);
 
+    if (AreBattlesDisabled())
+        return;
+
     if (hasFixedPersonality)
         personality = fixedPersonality;
     else
@@ -4411,6 +4414,13 @@ void CopyMon(void *dest, void *src, size_t size)
 u8 GiveMonToPlayer(struct Pokemon *mon)
 {
     s32 i;
+
+    if (AreBattlesDisabled())
+    {
+        ZeroPlayerPartyMons();
+        gPlayerPartyCount = 0;
+        return MON_GIVEN_TO_PARTY;
+    }
 
     SetMonData(mon, MON_DATA_OT_NAME, gSaveBlock2Ptr->playerName);
     SetMonData(mon, MON_DATA_OT_GENDER, &gSaveBlock2Ptr->playerGender);

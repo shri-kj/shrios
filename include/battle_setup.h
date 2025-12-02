@@ -21,6 +21,7 @@ extern u16 gPartnerTrainerId;
 void BattleSetup_StartWildBattle(void);
 void BattleSetup_StartBattlePikeWildBattle(void);
 void BattleSetup_StartRoamerBattle(void);
+bool8 AreBattlesDisabled(void);
 void StartWallyTutorialBattle(void);
 void BattleSetup_StartScriptedWildBattle(void);
 void BattleSetup_StartLatiBattle(void);

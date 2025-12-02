@@ -175,6 +175,7 @@ static u8 sBirchSpeechMainTaskId;
 
 // Static ROM declarations
 
+static void SetFixedPlayerIdentity(void);
 static u32 InitMainMenu(bool8);
 static void Task_MainMenuCheckSaveFile(u8);
 static void Task_MainMenuCheckBattery(u8);
@@ -370,6 +371,15 @@ static const struct WindowTemplate sWindowTemplates_MainMenu[] =
     },
     DUMMY_WIN_TEMPLATE
 };
+
+static void SetFixedPlayerIdentity(void)
+{
+    static const u8 sDefaultPlayerName[] = _("SHRI");
+
+    gSaveBlock2Ptr->playerGender = MALE;
+    StringCopy(gSaveBlock2Ptr->playerName, sDefaultPlayerName);
+    gSaveBlock2Ptr->playerName[PLAYER_NAME_LENGTH] = EOS;
+}
 
 static const struct WindowTemplate sNewGameBirchSpeechTextWindows[] =
 {
@@ -1059,7 +1069,9 @@ static void Task_HandleMainMenuAPressed(u8 taskId)
             default:
                 gPlttBufferUnfaded[0] = RGB_BLACK;
                 gPlttBufferFaded[0] = RGB_BLACK;
-                gTasks[taskId].func = Task_NewGameBirchSpeech_Init;
+                SetFixedPlayerIdentity();
+                SetMainCallback2(CB2_NewGame);
+                DestroyTask(taskId);
                 break;
             case ACTION_CONTINUE:
                 gPlttBufferUnfaded[0] = RGB_BLACK;

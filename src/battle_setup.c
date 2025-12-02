@@ -48,6 +48,11 @@
 #include "constants/trainer_hill.h"
 #include "constants/weather.h"
 
+bool8 AreBattlesDisabled(void)
+{
+    return TRUE;
+}
+
 enum {
     TRANSITION_TYPE_NORMAL,
     TRANSITION_TYPE_CAVE,
@@ -388,6 +393,9 @@ static void CreateBattleStartTask(u8 transition, u16 song)
 
 void BattleSetup_StartWildBattle(void)
 {
+    if (AreBattlesDisabled())
+        return;
+
     if (GetSafariZoneFlag())
         DoSafariBattle();
     else
@@ -396,6 +404,9 @@ void BattleSetup_StartWildBattle(void)
 
 void BattleSetup_StartBattlePikeWildBattle(void)
 {
+    if (AreBattlesDisabled())
+        return;
+
     DoBattlePikeWildBattle();
 }
 
@@ -420,6 +431,9 @@ static void DoStandardWildBattle(void)
 
 void BattleSetup_StartRoamerBattle(void)
 {
+    if (AreBattlesDisabled())
+        return;
+
     LockPlayerFieldControls();
     FreezeObjectEvents();
     StopPlayerAvatar();
@@ -479,6 +493,9 @@ static void DoBattlePyramidTrainerHillBattle(void)
 // Initiates battle where Wally catches Ralts
 void StartWallyTutorialBattle(void)
 {
+    if (AreBattlesDisabled())
+        return;
+
     CreateMaleMon(&gEnemyParty[0], SPECIES_RALTS, 5);
     LockPlayerFieldControls();
     gMain.savedCallback = CB2_ReturnToFieldContinueScriptPlayMapMusic;
@@ -488,6 +505,9 @@ void StartWallyTutorialBattle(void)
 
 void BattleSetup_StartScriptedWildBattle(void)
 {
+    if (AreBattlesDisabled())
+        return;
+
     LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = 0;
@@ -500,6 +520,9 @@ void BattleSetup_StartScriptedWildBattle(void)
 
 void BattleSetup_StartLatiBattle(void)
 {
+    if (AreBattlesDisabled())
+        return;
+
     LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = BATTLE_TYPE_LEGENDARY;
@@ -512,6 +535,9 @@ void BattleSetup_StartLatiBattle(void)
 
 void BattleSetup_StartLegendaryBattle(void)
 {
+    if (AreBattlesDisabled())
+        return;
+
     LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = BATTLE_TYPE_LEGENDARY;
@@ -551,6 +577,9 @@ void BattleSetup_StartLegendaryBattle(void)
 
 void StartGroudonKyogreBattle(void)
 {
+    if (AreBattlesDisabled())
+        return;
+
     LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_KYOGRE_GROUDON;
@@ -570,6 +599,9 @@ void StartRegiBattle(void)
 {
     u8 transitionId;
     u16 species;
+
+    if (AreBattlesDisabled())
+        return;
 
     LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
@@ -918,6 +950,9 @@ static void CB2_GiveStarter(void)
 {
     u16 starterMon;
 
+    if (AreBattlesDisabled())
+        return;
+
     *GetVarPointer(VAR_STARTER_MON) = gSpecialVar_Result;
     starterMon = GetStarterPokemon(gSpecialVar_Result);
     ScriptGiveMon(starterMon, 5, ITEM_NONE, 0, 0, 0);
@@ -929,6 +964,9 @@ static void CB2_GiveStarter(void)
 
 static void CB2_StartFirstBattle(void)
 {
+    if (AreBattlesDisabled())
+        return;
+
     UpdatePaletteFade();
     RunTasks();
 
@@ -1271,6 +1309,16 @@ void ClearTrainerFlag(u16 trainerId)
 
 void BattleSetup_StartTrainerBattle(void)
 {
+    if (AreBattlesDisabled())
+    {
+        SetBattledTrainersFlags();
+        gNoOfApproachingTrainers = 0;
+        sShouldCheckTrainerBScript = FALSE;
+        gWhichTrainerToFaceAfterBattle = 0;
+        ScriptContext_Enable();
+        return;
+    }
+
     if (gNoOfApproachingTrainers == 2)
         gBattleTypeFlags = (BATTLE_TYPE_DOUBLE | BATTLE_TYPE_TWO_OPPONENTS | BATTLE_TYPE_TRAINER);
     else
@@ -1369,6 +1417,13 @@ static void CB2_EndRematchBattle(void)
 
 void BattleSetup_StartRematchBattle(void)
 {
+    if (AreBattlesDisabled())
+    {
+        SetBattledTrainersFlags();
+        ScriptContext_Enable();
+        return;
+    }
+
     gBattleTypeFlags = BATTLE_TYPE_TRAINER;
     gMain.savedCallback = CB2_EndRematchBattle;
     DoTrainerBattle();

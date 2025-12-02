@@ -1826,6 +1826,13 @@ bool8 ScrCmd_trainerbattle(struct ScriptContext *ctx)
 
 bool8 ScrCmd_dotrainerbattle(struct ScriptContext *ctx)
 {
+    if (AreBattlesDisabled())
+    {
+        BattleSetup_StartTrainerBattle();
+        ctx->scriptPtr = BattleSetup_GetTrainerPostBattleScript();
+        return FALSE;
+    }
+
     BattleSetup_StartTrainerBattle();
     return TRUE;
 }
@@ -1878,6 +1885,9 @@ bool8 ScrCmd_setwildbattle(struct ScriptContext *ctx)
 
 bool8 ScrCmd_dowildbattle(struct ScriptContext *ctx)
 {
+    if (AreBattlesDisabled())
+        return FALSE;
+
     BattleSetup_StartScriptedWildBattle();
     ScriptContext_Stop();
     return TRUE;
